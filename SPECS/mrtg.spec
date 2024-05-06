@@ -6,7 +6,7 @@
 Summary:   Multi Router Traffic Grapher
 Name:      mrtg
 Version:   2.17.7
-Release:   10%{?dist}
+Release:   11%{?dist}
 URL:       http://oss.oetiker.ch/mrtg/
 Source0:   http://oss.oetiker.ch/mrtg/pub/mrtg-%{version}.tar.gz
 Source1:   http://oss.oetiker.ch/mrtg/pub/mrtg-%{version}.tar.gz.md5
@@ -142,6 +142,10 @@ fi
 %{_unitdir}/mrtg.timer
 
 %changelog
+* Mon Feb 05 2024 Vitezslav Crhonek <vcrhonek@redhat.com> - 2.17.7-11
+- Remove obsolete syslog references from service file
+  Resolves: RHEL-19644
+
 * Mon Aug 09 2021 Mohan Boddu <mboddu@redhat.com> - 2.17.7-10
 - Rebuilt for IMA sigs, glibc 2.34, aarch64 flags
   Related: rhbz#1991688
