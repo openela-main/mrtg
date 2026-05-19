@@ -1,6 +1,7 @@
 %global _use_internal_dependency_generator 0
 
 %global contentdir       %{_localstatedir}/www/%{name}
+%global factory_contentdir     %{_datadir}/factory/var/www/%{name}
 %global libdir           %{_localstatedir}/lib/mrtg
 
 # defining macros needed by SELinux
@@ -11,7 +12,7 @@
 Summary:   Multi Router Traffic Grapher
 Name:      mrtg
 Version:   2.17.10
-Release:   11%{?dist}
+Release:   12%{?dist}
 URL:       http://oss.oetiker.ch/mrtg/
 Source0:   http://oss.oetiker.ch/mrtg/pub/mrtg-%{version}.tar.gz
 Source1:   http://oss.oetiker.ch/mrtg/pub/mrtg-%{version}.tar.gz.md5
@@ -54,6 +55,7 @@ BuildRequires: make
 BuildRequires: gd-devel, libpng-devel
 BuildRequires: perl-generators
 BuildRequires: systemd-units
+BuildRequires: systemd-rpm-macros
 BuildRequires: gcc
 
 %global __find_requires %{SOURCE3}
@@ -117,13 +119,11 @@ rm -rf   $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/mrtg
-mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/lib/mrtg
-mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/lock/mrtg
-mkdir -p $RPM_BUILD_ROOT%{contentdir}
+mkdir -p $RPM_BUILD_ROOT%{factory_contentdir}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d
 
-install -m 644 images/*   $RPM_BUILD_ROOT%{contentdir}/
-sed 's,@CONTENTDIR@,%{contentdir},g; s,@LIBDIR@,%{_localstatedir}/lib/mrtg,g' \
+install -m 644 images/*   $RPM_BUILD_ROOT%{factory_contentdir}/
+sed 's,@CONTENTDIR@,%{contentdir},g; s,@LIBDIR@,%{libdir},g' \
     %{SOURCE2} > $RPM_BUILD_ROOT%{_sysconfdir}/mrtg/mrtg.cfg
 chmod 644 $RPM_BUILD_ROOT%{_sysconfdir}/mrtg/mrtg.cfg
 
@@ -150,13 +150,12 @@ install -D -p -m 0644 selinux/%{modulename}.if %{buildroot}%{_datadir}/selinux/d
 %endif
 
 %post
-install -d -m 0755 -o root -g root /var/lock/mrtg
 %systemd_post mrtg.service
 
 %preun
 if [ $1 -eq 0 ]; then
   # Package removal, not upgrade
-  rm -rf /var/lock/mrtg
+  rm -rf %{_localstatedir}/lock/mrtg
 fi
 %systemd_preun mrtg.service
 
@@ -191,16 +190,17 @@ fi
 %dir %{_sysconfdir}/mrtg
 %config(noreplace) %{_sysconfdir}/mrtg/mrtg.cfg
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/mrtg.conf
-%{contentdir}
+%{factory_contentdir}
 %{_bindir}/*
 %{_libdir}/mrtg2
 %exclude %{_libdir}/mrtg2/Pod
 %{_mandir}/*/*
 %exclude %{_datadir}/mrtg2/icons
 %exclude %{_datadir}/doc/mrtg2
-%dir %{_localstatedir}/lib/mrtg
+%ghost %attr(0755,root,root) %dir %{libdir}
+%ghost %attr(0755,root,root) %dir %{contentdir}
 %{_tmpfilesdir}/mrtg.conf
-%ghost /var/lock/mrtg
+%ghost %attr(0755,root,root) %dir %{_localstatedir}/lock/mrtg
 %{_unitdir}/mrtg.service
 %{_unitdir}/mrtg.timer
 
@@ -212,6 +212,10 @@ fi
 %endif
 
 %changelog
+* Mon Jan 26 2026 Vitezslav Crhonek <vcrhonek@redhat.com> - 2.17.10-12
+- Add support for Image Mode
+  Resolves: RHEL-142231
+
 * Wed Jan 15 2025 Vitezslav Crhonek <vcrhonek@redhat.com> - 2.17.10-11
 - Remove redundand restorecon call, redirect safe to ignore output
   to /dev/null, mark module directory to avoid rpm verification
