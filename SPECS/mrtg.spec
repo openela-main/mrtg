@@ -12,7 +12,7 @@
 Summary:   Multi Router Traffic Grapher
 Name:      mrtg
 Version:   2.17.10
-Release:   12%{?dist}
+Release:   12%{?dist}.1
 URL:       http://oss.oetiker.ch/mrtg/
 Source0:   http://oss.oetiker.ch/mrtg/pub/mrtg-%{version}.tar.gz
 Source1:   http://oss.oetiker.ch/mrtg/pub/mrtg-%{version}.tar.gz.md5
@@ -40,6 +40,8 @@ Patch1:    mrtg-2.17.2-socket6-fix.patch
 # Patch2: some devices return 2**32-2 on ifSpeed (e. g. IBM FibreChannel switches)
 Patch2:    mrtg-2.17.4-cfgmaker-ifhighspeed.patch
 Patch3:    mrtg-configure-c99.patch
+# https://github.com/oetiker/mrtg/commit/30e19216bfadc0148f347cb0a42fd5e2016e6269
+Patch4:    mrtg-2.17.10-CVE-2026-72694.patch
 License:   GPL-2.0-or-later
 Requires(post): systemd-units
 Requires(preun): systemd-units
@@ -86,6 +88,7 @@ Custom SELinux policy module
 %patch -P 1 -p1 -b .socket6
 %patch -P 2 -p1 -b .ifhighspeed
 %patch -P 3 -p1 -b .c99
+%patch -P 4 -p1 -b .CVE-2026-72694
 
 for i in doc/mrtg-forum.1 doc/mrtg-squid.1 CHANGES; do
     iconv -f iso-8859-1 -t utf-8 < "$i" > "${i}_"
@@ -212,6 +215,10 @@ fi
 %endif
 
 %changelog
+* Tue Aug 11 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 2.17.10-12.1
+- Fix symlink-following chown of pid file in daemon mode (CVE-2026-72694)
+  Resolves: RHEL-236045
+
 * Mon Jan 26 2026 Vitezslav Crhonek <vcrhonek@redhat.com> - 2.17.10-12
 - Add support for Image Mode
   Resolves: RHEL-142231
