@@ -7,7 +7,7 @@
 Summary:   Multi Router Traffic Grapher
 Name:      mrtg
 Version:   2.17.7
-Release:   12%{?dist}
+Release:   12%{?dist}.1
 URL:       http://oss.oetiker.ch/mrtg/
 Source0:   http://oss.oetiker.ch/mrtg/pub/mrtg-%{version}.tar.gz
 Source1:   http://oss.oetiker.ch/mrtg/pub/mrtg-%{version}.tar.gz.md5
@@ -31,6 +31,8 @@ Patch1:    mrtg-2.17.2-socket6-fix.patch
 Patch2:    mrtg-2.17.4-cfgmaker-ifhighspeed.patch
 # Patch3: fixes 'man' option in mrtg-traffic-sum, see rhbz#1612188
 Patch3:    mrtg-2.17.7-traffic-sum-man-option.patch
+# https://github.com/oetiker/mrtg/commit/30e19216bfadc0148f347cb0a42fd5e2016e6269
+Patch4:    mrtg-2.17.7-CVE-2026-72694.patch
 License:   GPLv2+
 Requires(post): systemd-units
 Requires(preun): systemd-units
@@ -58,6 +60,7 @@ images which provide a LIVE visual representation of this traffic.
 %patch -P 1 -p1 -b .socket6
 %patch -P 2 -p1 -b .ifhighspeed
 %patch -P 3 -p1 -b .traffic-sum-man-option
+%patch -P 4 -p1 -b .CVE-2026-72694
 
 for i in doc/mrtg-forum.1 doc/mrtg-squid.1 CHANGES; do
     iconv -f iso-8859-1 -t utf-8 < "$i" > "${i}_"
@@ -142,6 +145,10 @@ fi
 %{_unitdir}/mrtg.timer
 
 %changelog
+* Tue Aug 11 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 2.17.7-12.1
+- Fix CVE-2026-72694: symlink-following chown of pid file in daemon mode
+  Resolves: RHEL-236047
+
 * Mon Jan 26 2026 Vitezslav Crhonek <vcrhonek@redhat.com> - 2.17.7-12
 - Add support for Image Mode
   Resolves: RHEL-142950
